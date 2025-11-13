@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Metals Planner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="title-block">
+        <div class="logo-circle">m</div>
+        <div>
+          <h1>Metals</h1>
+          <p>XAU / XAG planner &amp; trim helper</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="badge local-badge">Local · On device</div>
+        <button id="themeToggle" class="pill-btn">Dark / Light</button>
+      </div>
+    </header>
+
+    <section class="portfolio card">
+      <div class="portfolio-header">
+        <h2>Portfolio</h2>
+        <div id="modeToggle" class="mode-toggle">
+          <button class="mode-btn active" data-mode="cons">Cons.</button>
+          <button class="mode-btn" data-mode="aggro">Aggro</button>
+        </div>
+      </div>
+      <div class="grid three-col portfolio-grid">
+        <div class="pf-item">
+          <span class="label">Total value</span>
+          <span id="pfTotalValue" class="value">—</span>
+        </div>
+        <div class="pf-item">
+          <span class="label">Total cost</span>
+          <span id="pfTotalCost" class="value">—</span>
+        </div>
+        <div class="pf-item">
+          <span class="label">Total P/L</span>
+          <span id="pfTotalPL" class="value">—</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card tabs-card">
+      <div class="tabs">
+        <button class="tab active" data-asset="gold">Gold (XAU)</button>
+        <button class="tab" data-asset="silver">Silver (XAG)</button>
+      </div>
+    </section>
+
+    <!-- Gold panel -->
+    <section id="goldPanel" class="asset-panel card">
+      <div class="asset-header">
+        <div>
+          <h2>Gold</h2>
+          <span class="sub">Ahmed strategy</span>
+        </div>
+        <div class="mode-label" id="goldModeLabel">Mode: Cons.</div>
+      </div>
+
+      <div class="grid two-col">
+        <label class="field">
+          <span>Holdings (oz)</span>
+          <input id="goldHold" type="number" step="0.001" inputmode="decimal" />
+        </label>
+        <label class="field">
+          <span>Avg buy (JOD/oz)</span>
+          <input id="goldAvg" type="number" step="0.1" inputmode="decimal" />
+        </label>
+      </div>
+
+      <div class="grid two-col">
+        <label class="field">
+          <span>Current price (JOD/oz)</span>
+          <input id="goldPrice" type="number" step="0.001" inputmode="decimal" />
+        </label>
+        <label class="field">
+          <span>Current value (JOD)</span>
+          <input id="goldValue" type="text" readonly />
+        </label>
+      </div>
+
+      <div class="card sub-card">
+        <h3>Bank prices &amp; spread</h3>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Bank BUY (JOD/oz)</span>
+            <input id="goldBankBuy" type="number" step="0.001" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>Bank SELL (JOD/oz)</span>
+            <input id="goldBankSell" type="number" step="0.001" inputmode="decimal" />
+          </label>
+        </div>
+        <div class="spread-row">
+          <span>Spread:</span>
+          <span id="goldSpread">—</span>
+        </div>
+        <div class="spread-row">
+          <span>Break-even (after spread):</span>
+          <span id="goldBreakEven">—</span>
+        </div>
+      </div>
+
+      <div class="card sub-card">
+        <h3>Position</h3>
+        <div class="grid three-col">
+          <div>
+            <span class="label">Cost</span>
+            <div id="goldCost" class="value">—</div>
+          </div>
+          <div>
+            <span class="label">P/L</span>
+            <div id="goldPL" class="value">—</div>
+          </div>
+          <div>
+            <span class="label">P/L %</span>
+            <div id="goldPLPct" class="value">—</div>
+          </div>
+        </div>
+        <div id="goldStatus" class="status-pill">
+          <span class="status-dot hold"></span>
+          <span>HOLD – between buy &amp; trims</span>
+        </div>
+      </div>
+
+      <div class="card sub-card">
+        <h3>24h move check</h3>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Yesterday price (JOD/oz)</span>
+            <input id="goldPrev" type="number" step="0.001" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>24h change %</span>
+            <input id="goldMove" type="text" readonly />
+          </label>
+        </div>
+        <div id="goldMoveStatus" class="muted small-text">Big move status: —</div>
+      </div>
+
+      <div class="card sub-card">
+        <div class="sub-card-header">
+          <h3>Trim ladder</h3>
+          <span class="muted small-text">Manual orders in bank app</span>
+        </div>
+        <table class="trim-table">
+          <thead>
+            <tr>
+              <th>Level</th>
+              <th>Sell %</th>
+              <th>Qty (oz)</th>
+              <th>Profit</th>
+            </tr>
+          </thead>
+          <tbody id="goldTrimBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Silver panel -->
+    <section id="silverPanel" class="asset-panel card hidden">
+      <div class="asset-header">
+        <div>
+          <h2>Silver</h2>
+          <span class="sub">Ahmed strategy</span>
+        </div>
+        <div class="mode-label" id="silverModeLabel">Mode: Cons.</div>
+      </div>
+
+      <div class="grid two-col">
+        <label class="field">
+          <span>Holdings (oz)</span>
+          <input id="silverHold" type="number" step="0.001" inputmode="decimal" />
+        </label>
+        <label class="field">
+          <span>Avg buy (JOD/oz)</span>
+          <input id="silverAvg" type="number" step="0.1" inputmode="decimal" />
+        </label>
+      </div>
+
+      <div class="grid two-col">
+        <label class="field">
+          <span>Current price (JOD/oz)</span>
+          <input id="silverPrice" type="number" step="0.001" inputmode="decimal" />
+        </label>
+        <label class="field">
+          <span>Current value (JOD)</span>
+          <input id="silverValue" type="text" readonly />
+        </label>
+      </div>
+
+      <div class="card sub-card">
+        <h3>Bank prices &amp; spread</h3>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Bank BUY (JOD/oz)</span>
+            <input id="silverBankBuy" type="number" step="0.001" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>Bank SELL (JOD/oz)</span>
+            <input id="silverBankSell" type="number" step="0.001" inputmode="decimal" />
+          </label>
+        </div>
+        <div class="spread-row">
+          <span>Spread:</span>
+          <span id="silverSpread">—</span>
+        </div>
+        <div class="spread-row">
+          <span>Break-even (after spread):</span>
+          <span id="silverBreakEven">—</span>
+        </div>
+      </div>
+
+      <div class="card sub-card">
+        <h3>Position</h3>
+        <div class="grid three-col">
+          <div>
+            <span class="label">Cost</span>
+            <div id="silverCost" class="value">—</div>
+          </div>
+          <div>
+            <span class="label">P/L</span>
+            <div id="silverPL" class="value">—</div>
+          </div>
+          <div>
+            <span class="label">P/L %</span>
+            <div id="silverPLPct" class="value">—</div>
+          </div>
+        </div>
+        <div id="silverStatus" class="status-pill">
+          <span class="status-dot hold"></span>
+          <span>HOLD – between buy &amp; trims</span>
+        </div>
+      </div>
+
+      <div class="card sub-card">
+        <h3>24h move check</h3>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Yesterday price (JOD/oz)</span>
+            <input id="silverPrev" type="number" step="0.001" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>24h change %</span>
+            <input id="silverMove" type="text" readonly />
+          </label>
+        </div>
+        <div id="silverMoveStatus" class="muted small-text">Big move status: —</div>
+      </div>
+
+      <div class="card sub-card">
+        <div class="sub-card-header">
+          <h3>Trim ladder</h3>
+          <span class="muted small-text">Manual orders in bank app</span>
+        </div>
+        <table class="trim-table">
+          <thead>
+            <tr>
+              <th>Level</th>
+              <th>Sell %</th>
+              <th>Qty (oz)</th>
+              <th>Profit</th>
+            </tr>
+          </thead>
+          <tbody id="silverTrimBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #050816;
+  --bg-soft: #0b1020;
+  --card: #111827;
+  --accent: #fbbf24;
+  --accent-soft: rgba(251, 191, 36, 0.12);
+  --accent-red: #fb7185;
+  --accent-green: #4ade80;
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border-subtle: rgba(148, 163, 184, 0.25);
+}
+
+body.light {
+  --bg: #f3f4f6;
+  --bg-soft: #e5e7eb;
+  --card: #ffffff;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --border-subtle: rgba(148, 163, 184, 0.45);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #111827 0, var(--bg) 42%, #020617 100%);
+  color: var(--text-main);
+}
+
+.app {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1.2rem 0.9rem 2.5rem;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 0.75rem;
+}
+
+.title-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 10%, #fcd34d, #f97316);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111827;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+header p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #022c22;
+  color: #bbf7d0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.pill-btn {
+  font-size: 0.76rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-main);
+}
+
+.card {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.75));
+  border-radius: 1.2rem;
+  padding: 0.9rem 0.9rem 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.9);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.75);
+  margin-bottom: 0.9rem;
+}
+
+.tabs-card {
+  padding-bottom: 0.65rem;
+}
+
+.portfolio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.portfolio-header h2 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  padding: 0.13rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border-subtle);
+}
+
+.mode-btn {
+  font-size: 0.72rem;
+  padding: 0.26rem 0.7rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.mode-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.three-col {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 640px) {
+  .two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .three-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.portfolio-grid .value {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.pf-item .label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.tabs {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.12rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+}
+
+.tab {
+  flex: 1;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0.35rem 0.9rem;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.tab.active {
+  background: var(--accent);
+  color: #111827;
+}
+
+.asset-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.asset-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.asset-header .sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.mode-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.24rem;
+  font-size: 0.78rem;
+}
+
+.field span {
+  color: var(--text-muted);
+}
+
+.field input {
+  border-radius: 0.7rem;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-main);
+  padding: 0.42rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+.field input[readonly] {
+  opacity: 0.8;
+}
+
+.sub-card {
+  margin-top: 0.7rem;
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.8));
+}
+
+.sub-card h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.86rem;
+}
+
+.sub-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.status-pill {
+  margin-top: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.78rem;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--text-muted);
+}
+
+.status-dot.buy {
+  background: var(--accent-green);
+}
+
+.status-dot.sell {
+  background: var(--accent-red);
+}
+
+.status-dot.hold {
+  background: #facc15;
+}
+
+.value {
+  font-size: 0.84rem;
+}
+
+.value-green {
+  color: var(--accent-green);
+}
+
+.value-red {
+  color: var(--accent-red);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.small-text {
+  font-size: 0.74rem;
+}
+
+.spread-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  margin-top: 0.16rem;
+  color: var(--text-muted);
+}
+
+.trim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  margin-top: 0.35rem;
+}
+
+.trim-table th,
+.trim-table td {
+  padding: 0.25rem 0.18rem;
+  text-align: left;
+}
+
+.trim-table thead {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.trim-table tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.asset-panel.hidden {
+  display: none;
+}
