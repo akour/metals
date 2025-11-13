@@ -3,7 +3,20 @@
 *::after {
   box-sizing: border-box;
 }
-
+:root {
+  --bg: #050816;
+  --bg-soft: #0b1020;
+  --card: #111827;
+  --card-soft: #111827cc;
+  --accent: #fbbf24;
+  --accent-soft: rgba(251, 191, 36, 0.12);
+  --accent-red: #fb7185;
+  --accent-green: #4ade80;
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border-subtle: #1f2933;
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
 :root {
   --bg: #050816;
   --bg-soft: #0b1020;
