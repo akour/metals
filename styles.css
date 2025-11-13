@@ -34,11 +34,41 @@ body.light {
   --bg: #f3f4f6;
   --bg-soft: #e5e7eb;
   --card: #ffffff;
+  --card-soft: #ffffff;
+  --accent: #f59e0b;
+  --accent-soft: rgba(245, 158, 11, 0.12);
+  --accent-red: #b91c1c;
+  --accent-green: #15803d;
   --text-main: #111827;
   --text-muted: #6b7280;
-  --border-subtle: rgba(148, 163, 184, 0.45);
+  --border-subtle: #d1d5db;
+  --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.12);
 }
 
+/* use the variables everywhere */
+body {
+  background: radial-gradient(circle at top, #111827 0, var(--bg) 45%, #020617 100%);
+  color: var(--text-main);
+}
+
+.card {
+  background: var(--card);
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-subtle);
+}
+
+input,
+select {
+  background: var(--bg-soft);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+body.light input,
+body.light select {
+  background: #f9fafb;
+}
 body {
   margin: 0;
   min-height: 100vh;
