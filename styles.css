@@ -1,56 +1,63 @@
-/* =========================
-   THEME TOKENS
-   ========================= */
+/* ====== Base ====== */
 
-body.dark {
+:root {
   --bg: #050816;
   --bg-soft: #0b1020;
   --card: #111827;
-  --card-soft: #111827cc;
+  --card-soft: #151b2a;
   --accent: #fbbf24;
   --accent-soft: rgba(251, 191, 36, 0.12);
   --accent-red: #fb7185;
   --accent-green: #4ade80;
-  --text-main: #e5e7eb;
+  --text-main: #f9fafb;
   --text-muted: #9ca3af;
-  --border-subtle: #1f2937;
-  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.55);
+  --border-subtle: rgba(148, 163, 184, 0.35);
+  --input-bg: rgba(15, 23, 42, 0.9);
+  --shadow-soft: 0 22px 45px rgba(0, 0, 0, 0.65);
+
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-pill: 999px;
+
+  --transition-fast: 0.18s ease-out;
+  --transition-med: 0.25s ease-out;
 }
 
+/* Light theme overrides */
+body[data-theme="light"] {
+  --bg: #f3f4f6;
+  --bg-soft: #e5e7eb;
+  --card: #ffffff;
+  --card-soft: #f9fafb;
+  --accent: #f97316;
+  --accent-soft: rgba(249, 115, 22, 0.08);
+  --accent-red: #dc2626;
+  --accent-green: #16a34a;
+  --text-main: #0f172a;
+  --text-muted: #6b7280;
+  --border-subtle: rgba(148, 163, 184, 0.4);
+  --input-bg: #f9fafb;
+  --shadow-soft: 0 14px 32px rgba(15, 23, 42, 0.16);
+}
+
+/* Some people use a “light” class; honour that too */
 body.light {
   --bg: #f3f4f6;
   --bg-soft: #e5e7eb;
   --card: #ffffff;
-  --card-soft: #ffffff;
-  --accent: #f59e0b;
-  --accent-soft: rgba(245, 158, 11, 0.12);
-  --accent-red: #b91c1c;
-  --accent-green: #15803d;
-  --text-main: #111827;
+  --card-soft: #f9fafb;
+  --accent: #f97316;
+  --accent-soft: rgba(249, 115, 22, 0.08);
+  --accent-red: #dc2626;
+  --accent-green: #16a34a;
+  --text-main: #0f172a;
   --text-muted: #6b7280;
-  --border-subtle: #d1d5db;
-  --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.12);
+  --border-subtle: rgba(148, 163, 184, 0.4);
+  --input-bg: #f9fafb;
+  --shadow-soft: 0 14px 32px rgba(15, 23, 42, 0.16);
 }
 
-/* fallback if no class present yet */
-body {
-  --bg: #050816;
-  --bg-soft: #0b1020;
-  --card: #111827;
-  --card-soft: #111827cc;
-  --accent: #fbbf24;
-  --accent-soft: rgba(251, 191, 36, 0.12);
-  --accent-red: #fb7185;
-  --accent-green: #4ade80;
-  --text-main: #e5e7eb;
-  --text-muted: #9ca3af;
-  --border-subtle: #1f2937;
-  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.55);
-}
-
-/* =========================
-   GLOBAL
-   ========================= */
+/* ====== Global layout ====== */
 
 *,
 *::before,
@@ -62,369 +69,319 @@ html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
 body {
-  min-height: 100vh;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    sans-serif;
-  background: radial-gradient(circle at top, var(--bg-soft) 0, var(--bg) 55%);
+    "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #111827 0, var(--bg) 42%, #020617 100%);
   color: var(--text-main);
-}
-
-/* Scroll behaviour */
-
-body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* =========================
-   LAYOUT
-   ========================= */
-
-.app-root {
-  max-width: 960px;
+.app-shell {
+  max-width: 520px;
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 1.1rem 1rem 3.5rem;
 }
 
-@media (min-width: 768px) {
-  .app-root {
-    padding: 28px 20px 48px;
+/* Prevent iOS “bounce” from exposing white gaps */
+@supports (scrollbar-color: auto) {
+  body {
+    overscroll-behavior-y: none;
   }
 }
 
-/* =========================
-   HEADER
-   ========================= */
+/* ====== Header ====== */
 
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
 }
 
 .app-title-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.7rem;
 }
 
 .app-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 16px;
-  background: radial-gradient(circle at 20% 0%, #fde68a, #f97316);
+  width: 40px;
+  height: 40px;
+  border-radius: 34%;
+  background: radial-gradient(circle at 30% 0, #fed7aa 0, #fbbf24 40%, #ea580c 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 22px;
   color: #111827;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
-.app-title-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.app-title-text h1 {
-  font-size: 22px;
+.app-title-block h1 {
+  font-size: 1.45rem;
+  letter-spacing: 0.02em;
   margin: 0;
 }
 
-.app-title-text span {
-  font-size: 13px;
+.app-title-block p {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-/* =========================
-   BADGES & SWITCHES
-   ========================= */
+.header-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
 
 .badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border-subtle);
-  background: var(--card-soft);
-}
-
-.badge-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #22c55e;
-}
-
-.header-right {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-}
-
-/* Dark / light toggle */
-
-#themeToggle {
-  border-radius: 999px;
-  padding: 4px 14px;
-  border: 1px solid var(--border-subtle);
-  background: transparent;
-  color: var(--text-main);
-  font-size: 11px;
-  cursor: pointer;
-}
-
-/* =========================
-   PILLS (Cons. / Aggro, Gold / Silver)
-   ========================= */
-
-.pill-group {
-  display: inline-flex;
-  padding: 4px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
+  padding: 0.15rem 0.65rem;
+  font-size: 0.72rem;
   background: rgba(15, 23, 42, 0.8);
-  border: 1px solid var(--border-subtle);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-body.light .pill-group {
-  background: rgba(243, 244, 246, 0.9);
-}
-
-.pill {
-  border-radius: 999px;
-  padding: 6px 18px;
-  font-size: 13px;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-}
-
-.pill.active {
-  background: linear-gradient(135deg, var(--accent), #facc15);
-  color: #111827;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
-}
-
-/* =========================
-   CARDS
-   ========================= */
-
-.card {
-  background: var(--card);
-  border-radius: 22px;
-  padding: 18px 16px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-soft);
-  border: 1px solid var(--border-subtle);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.card-subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* =========================
-   PORTFOLIO STRIP
-   ========================= */
-
-.portfolio-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.portfolio-item {
-  flex: 1 1 120px;
-}
-
-.portfolio-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-}
-
-.portfolio-value {
-  font-size: 15px;
-}
-
-.portfolio-pl {
-  color: var(--accent-green);
-}
-
-/* =========================
-   FORMS
-   ========================= */
-
-.form-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-@media (min-width: 640px) {
-  .form-grid-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.field label {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.field input {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-soft);
-  color: var(--text-main);
-  font-size: 14px;
-}
-
-.field input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent-soft);
-}
-
-body.light .field input {
-  background: #f9fafb;
-}
-
-/* =========================
-   STATUS PILL
-   ========================= */
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  border: 1px solid transparent;
-}
-
-.status-pill.dot::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
-.status-hold {
-  color: #e5e7eb;
-  background: var(--accent-soft);
-  border-color: rgba(148, 163, 184, 0.5);
-}
-
-.status-buy {
-  color: var(--accent-green);
-  background: rgba(34, 197, 94, 0.12);
+body[data-theme="light"] .badge,
+body.light .badge {
+  background: #e5f9ee;
+  color: #065f46;
   border-color: rgba(34, 197, 94, 0.45);
 }
 
-.status-trim {
-  color: var(--accent-red);
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.45);
+.badge-toggle {
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: var(--text-main);
 }
 
-/* =========================
-   BANK SPREAD
-   ========================= */
-
-.spread-row {
-  display: grid;
-  grid-template-columns: 1.3fr 1.3fr;
-  gap: 10px;
-  margin-top: 8px;
+body[data-theme="light"] .badge-toggle,
+body.light .badge-toggle {
+  background: #e5e7eb;
 }
 
-@media (min-width: 640px) {
-  .spread-row {
-    grid-template-columns: 1.3fr 1.3fr 1.2fr 1.2fr;
-  }
+/* ====== Cards ====== */
+
+.card {
+  background: linear-gradient(135deg, var(--card) 0, var(--card-soft) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 1.1rem 1.2rem 1.15rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.8);
 }
 
-.spread-extra {
-  font-size: 11px;
+body[data-theme="light"] .card,
+body.light .card {
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+/* Section titles */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.section-subtitle {
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-/* =========================
-   P/L SUMMARY
-   ========================= */
+/* ====== Portfolio summary ====== */
 
-.position-grid {
+.portfolio-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 0.15rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.86rem;
 }
 
-.position-label {
-  font-size: 11px;
-  color: var(--text-muted);
+.portfolio-summary strong {
+  font-weight: 600;
 }
 
-.position-value {
-  font-size: 14px;
+.portfolio-pl {
+  font-weight: 600;
 }
 
-.position-value.gain {
+.portfolio-pl.positive {
   color: var(--accent-green);
 }
 
-.position-value.loss {
+.portfolio-pl.negative {
   color: var(--accent-red);
 }
 
-/* =========================
-   TRIM TABLE
-   ========================= */
+/* ====== Pill toggles (Cons/Aggro, Gold/Silver) ====== */
+
+.pill-toggle {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: var(--radius-pill);
+  padding: 0.16rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  gap: 0.18rem;
+}
+
+body[data-theme="light"] .pill-toggle,
+body.light .pill-toggle {
+  background: #e5e7eb;
+}
+
+.pill-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  padding: 0.22rem 0.7rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.pill-toggle button.active {
+  background: var(--accent);
+  color: #111827;
+  transform: translateY(-0.5px);
+}
+
+/* Asset selector row */
+.asset-tabs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.asset-tabs .pill-toggle {
+  width: 100%;
+}
+
+/* ====== Form controls ====== */
+
+.field-group {
+  margin-bottom: 0.65rem;
+}
+
+.field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.23rem;
+}
+
+.field-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.field-label-aux {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+input[type="number"],
+input[type="text"] {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    background var(--transition-fast), transform 0.08s ease-out;
+  -webkit-appearance: none;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.35);
+  transform: translateY(-0.5px);
+}
+
+body[data-theme="light"] input[type="number"],
+body[data-theme="light"] input[type="text"],
+body.light input[type="number"],
+body.light input[type="text"] {
+  background: var(--input-bg);
+}
+
+/* Readonly / derived fields */
+
+input[readonly] {
+  opacity: 0.9;
+}
+
+/* ====== Status chips ====== */
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.26rem 0.72rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.7);
+  color: var(--text-main);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--text-muted);
+}
+
+.status-chip.good .status-dot {
+  background: var(--accent-green);
+}
+
+.status-chip.warn .status-dot {
+  background: var(--accent);
+}
+
+.status-chip.bad .status-dot {
+  background: var(--accent-red);
+}
+
+/* ====== Trim ladder table ====== */
 
 .trim-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
-  margin-top: 8px;
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.trim-table thead {
+  color: var(--text-muted);
 }
 
 .trim-table th,
 .trim-table td {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-  padding: 6px 4px;
+  padding: 0.35rem 0.15rem;
   text-align: right;
 }
 
@@ -433,40 +390,55 @@ body.light .field input {
   text-align: left;
 }
 
-.trim-table th {
-  font-weight: 500;
+.trim-table tbody tr:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+body[data-theme="light"] .trim-table tbody tr:nth-child(odd),
+body.light .trim-table tbody tr:nth-child(odd) {
+  background: rgba(229, 231, 235, 0.7);
+}
+
+.trim-table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+/* ====== Helper rows (bank spread, big move, footer) ====== */
+
+.helper-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
   color: var(--text-muted);
 }
 
-.trim-table tfoot td {
-  border-bottom: none;
-  padding-top: 10px;
-  font-size: 11px;
+.helper-row strong {
+  color: var(--text-main);
+}
+
+/* ====== Footer ====== */
+
+.app-footer {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
-/* =========================
-   FOOTER / NOTES
-   ========================= */
+/* ====== Small devices tweaks ====== */
 
-.helper-note {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
+@media (max-width: 380px) {
+  .app-shell {
+    padding: 0.8rem 0.6rem 3rem;
+  }
 
-/* =========================
-   MISC
-   ========================= */
+  .card {
+    padding-inline: 0.9rem;
+  }
 
-.text-right {
-  text-align: right;
-}
-
-.mt-8 {
-  margin-top: 8px;
-}
-
-.mt-12 {
-  margin-top: 12px;
+  .app-title-block h1 {
+    font-size: 1.3rem;
+  }
 }
