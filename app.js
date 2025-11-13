@@ -1,13 +1,29 @@
-// Metals Planner logic with bank spread support
+// =============================
+// Helpers
+// =============================
+
+const qs = (id) => document.getElementById(id);
+const qsa = (sel) => Array.from(document.querySelectorAll(sel));
+
+function fmtJod(n) {
+  if (isNaN(n)) return "--";
+  return n.toFixed(1);
+}
+
+function fmtPct(n) {
+  if (isNaN(n)) return "--";
+  return n.toFixed(2) + " %";
+}
+
+// =============================
+// Base config
+// =============================
 
 const baseConfig = {
   gold: {
     holdings: 0.335,
     avg: 2928,
-    price: 2929,
-    buyStrong: 2870,
-    buyLightLow: 2870,
-    buyLightHigh: 2900,
+    price: 2950,
     trimsCons: [
       { price: 3050, pct: 20 },
       { price: 3120, pct: 20 },
@@ -17,332 +33,302 @@ const baseConfig = {
       { price: 3040, pct: 25 },
       { price: 3100, pct: 25 },
       { price: 3180, pct: 25 }
-    ]
+    ],
+    buyStrong: 2870,
+    buyLightLow: 2870,
+    buyLightHigh: 2900
   },
   silver: {
     holdings: 23.6,
     avg: 37.6,
     price: 37.6,
-    buyStrong: 35.0,
-    buyLightLow: 35.0,
-    buyLightHigh: 38.0,
     trimsCons: [
       { price: 41.0, pct: 20 },
       { price: 43.0, pct: 20 },
       { price: 45.0, pct: 20 }
     ],
     trimsAggro: [
-      { price: 40.0, pct: 25 },
-      { price: 42.0, pct: 25 },
-      { price: 44.0, pct: 25 }
-    ]
+      { price: 40.5, pct: 25 },
+      { price: 42.5, pct: 25 },
+      { price: 44.5, pct: 25 }
+    ],
+    buyStrong: 35.0,
+    buyLightLow: 35.0,
+    buyLightHigh: 38.0
   }
 };
 
-let currentMode = "cons"; // cons or aggro
+let currentMode = "cons"; // "cons" or "aggro"
 
-function qs(id) {
-  return document.getElementById(id);
-}
+// only these inputs are persisted; current spot price is NOT persisted
+const persistedFields = ["Hold", "Avg", "BankBuy", "BankSell"];
 
-function loadState() {
+// =============================
+// Theme toggle
+// =============================
+
+const themeToggleBtn = qs("themeToggle");
+
+function applyTheme(theme) {
+  document.body.classList.remove("dark", "light");
+  document.body.classList.add(theme);
+
+  // label text
+  themeToggleBtn.textContent =
+    theme === "light" ? "Light / Dark" : "Dark / Light";
+
   try {
-    const saved = JSON.parse(localStorage.getItem("metalsState"));
-    if (!saved) return;
-
-    currentMode = saved.mode || "cons";
-    if (saved.gold) Object.assign(baseConfig.gold, saved.gold);
-    if (saved.silver) Object.assign(baseConfig.silver, saved.silver);
-    if (saved.theme === "light") document.body.classList.add("light");
+    localStorage.setItem("metalsTheme", theme);
   } catch (_) {}
 }
 
-function saveState() {
-  const state = {
-    mode: currentMode,
-    theme: document.body.classList.contains("light") ? "light" : "dark",
-    gold: {
-      holdings: parseFloat(qs("goldHold").value) || 0,
-      avg: parseFloat(qs("goldAvg").value) || 0,
-      price: parseFloat(qs("goldPrice").value) || 0,
-      bankBuy: parseFloat(qs("goldBankBuy").value) || 0,
-      bankSell: parseFloat(qs("goldBankSell").value) || 0
-    },
-    silver: {
-      holdings: parseFloat(qs("silverHold").value) || 0,
-      avg: parseFloat(qs("silverAvg").value) || 0,
-      price: parseFloat(qs("silverPrice").value) || 0,
-      bankBuy: parseFloat(qs("silverBankBuy").value) || 0,
-      bankSell: parseFloat(qs("silverBankSell").value) || 0
+function initTheme() {
+  if (!themeToggleBtn) return;
+  const saved = localStorage.getItem("metalsTheme") || "dark";
+  applyTheme(saved);
+
+  themeToggleBtn.addEventListener("click", () => {
+    const next = document.body.classList.contains("light") ? "dark" : "light";
+    applyTheme(next);
+  });
+}
+
+// =============================
+// Asset logic
+// =============================
+
+function loadPersisted(assetKey) {
+  persistedFields.forEach((suffix) => {
+    const id = assetKey + suffix;
+    const el = qs(id);
+    if (!el) return;
+    const stored = localStorage.getItem("metals_" + id);
+    if (stored !== null) {
+      el.value = stored;
     }
-  };
-  localStorage.setItem("metalsState", JSON.stringify(state));
+  });
 }
 
-function formatJOD(v) {
-  if (isNaN(v)) return "—";
-  return v.toFixed(1) + " JOD";
-}
+function wirePersistence(assetKey) {
+  persistedFields.forEach((suffix) => {
+    const id = assetKey + suffix;
+    const el = qs(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      localStorage.setItem("metals_" + id, el.value);
+      updateAsset(assetKey);
+    });
+  });
 
-function formatPct(v) {
-  if (isNaN(v)) return "—";
-  return v.toFixed(2) + " %";
+  // spot price should affect calcs, but is NOT saved in storage
+  const priceInput = qs(assetKey + "Price");
+  if (priceInput) {
+    priceInput.addEventListener("input", () => updateAsset(assetKey));
+  }
 }
 
 function updateAsset(assetKey) {
   const cfg = baseConfig[assetKey];
+  if (!cfg) return;
 
   const holdInput = qs(assetKey + "Hold");
   const avgInput = qs(assetKey + "Avg");
   const priceInput = qs(assetKey + "Price");
-  const prevInput = qs(assetKey + "Prev");
-  const bankBuyInput = qs(assetKey + "BankBuy");
-  const bankSellInput = qs(assetKey + "BankSell");
-  const valueInput = qs(assetKey + "Value");
 
-  const hold = parseFloat(holdInput.value) || 0;
-  const avg = parseFloat(avgInput.value) || 0;
-  const priceRaw = parseFloat(priceInput.value) || 0;
-  const prev = parseFloat(prevInput?.value) || null;
-  const bankBuy = parseFloat(bankBuyInput?.value) || null;
-  const bankSell = parseFloat(bankSellInput?.value) || null;
+  const hold = parseFloat(holdInput?.value || cfg.holdings);
+  const avg = parseFloat(avgInput?.value || cfg.avg);
+  const price = parseFloat(priceInput?.value || cfg.price);
 
-  // Use bank SELL as the real exit price if present
-  let price = priceRaw;
-  if (bankSell && bankSell > 0) {
-    price = bankSell;
-    priceInput.value = bankSell.toFixed(3);
-  }
-
-  // Position
   const cost = hold * avg;
   const value = hold * price;
   const pl = value - cost;
   const plPct = cost > 0 ? (pl / cost) * 100 : 0;
 
-  if (valueInput) valueInput.value = value ? value.toFixed(1) : "";
+  if (qs(assetKey + "Value")) qs(assetKey + "Value").value = fmtJod(value);
+  if (qs(assetKey + "Cost")) qs(assetKey + "Cost").textContent = fmtJod(cost);
+  if (qs(assetKey + "PL")) qs(assetKey + "PL").textContent = fmtJod(pl);
+  if (qs(assetKey + "PLPct"))
+    qs(assetKey + "PLPct").textContent = fmtPct(plPct);
 
-  qs(assetKey + "Cost").textContent = formatJOD(cost);
-  const plNode = qs(assetKey + "PL");
-  const plPctNode = qs(assetKey + "PLPct");
-
-  plNode.textContent = formatJOD(pl);
-  plPctNode.textContent = formatPct(plPct);
-
-  plNode.classList.remove("value-green", "value-red");
-  plPctNode.classList.remove("value-green", "value-red");
-  if (pl > 0) {
-    plNode.classList.add("value-green");
-    plPctNode.classList.add("value-green");
-  } else if (pl < 0) {
-    plNode.classList.add("value-red");
-    plPctNode.classList.add("value-red");
-  }
-
-  // Bank spread + break-even
-  const spreadNode = qs(assetKey + "Spread");
-  const breakEvenNode = qs(assetKey + "BreakEven");
-
-  if (bankBuy && bankSell && bankBuy > 0 && bankSell > 0) {
-    const spreadJOD = bankBuy - bankSell;
-    const spreadPct = (spreadJOD / bankBuy) * 100;
-
-    spreadNode.textContent =
-      spreadJOD.toFixed(3) + " JOD (" + spreadPct.toFixed(2) + " %)";
-
-    const breakEvenPrice = avg * (1 + spreadPct / 100);
-    breakEvenNode.textContent = breakEvenPrice.toFixed(1) + " JOD/oz";
-  } else {
-    if (spreadNode) spreadNode.textContent = "—";
-    if (breakEvenNode) breakEvenNode.textContent = "—";
-  }
-
-  // Status (buy / hold / trim)
+  // Status vs buy/trim zones
   const statusEl = qs(assetKey + "Status");
-  const dot = statusEl.querySelector(".status-dot");
-  let text = "";
+  if (statusEl) {
+    statusEl.className = "status-pill dot status-hold";
+    let label = "HOLD – between buy & trims";
 
-  if (!price || !avg) {
-    dot.className = "status-dot hold";
-    text = "Fill holdings, avg & price to see status";
-  } else if (price <= cfg.buyStrong) {
-    dot.className = "status-dot buy";
-    text = "STRONG BUY zone";
-  } else if (price <= cfg.buyLightHigh && price >= cfg.buyLightLow) {
-    dot.className = "status-dot buy";
-    text = "Light buy / average-down";
-  } else {
-    const trims = currentMode === "cons" ? cfg.trimsCons : cfg.trimsAggro;
-    const hit = trims.find(t => price >= t.price);
-    if (hit) {
-      dot.className = "status-dot sell";
-      text = `Trim zone @ ${hit.price} JOD`;
-    } else {
-      dot.className = "status-dot hold";
-      text = "HOLD – between buy & trims";
+    if (price <= cfg.buyStrong) {
+      label = "Strong buy / average-down";
+      statusEl.classList.replace("status-hold", "status-buy");
+    } else if (price >= cfg.trimsCons[0].price) {
+      label = "Trim zone / partial sells";
+      statusEl.classList.replace("status-hold", "status-trim");
+    } else if (
+      price >= cfg.buyLightLow &&
+      price <= cfg.buyLightHigh
+    ) {
+      label = "Light buy / top-up";
+      statusEl.classList.replace("status-hold", "status-buy");
     }
-  }
-  statusEl.lastElementChild.textContent = text;
 
-  // 24h move
-  if (prev && price) {
-    const change = ((price - prev) / prev) * 100;
-    const moveId = assetKey + "Move";
-    const moveStatusId = assetKey + "MoveStatus";
-
-    qs(moveId).value = change.toFixed(2) + " %";
-
-    const statusText = qs(moveStatusId);
-    let msg = "Big move status: ";
-    if (Math.abs(change) >= 5) {
-      msg += `⚡ ${change > 0 ? "UP" : "DOWN"} > 5% – check trims / buys`;
-    } else {
-      msg += "Calm – inside normal daily range";
-    }
-    statusText.innerHTML = msg;
+    statusEl.textContent = label;
   }
 
-  // Trim ladder table
-  const bodyId = assetKey === "gold" ? "goldTrimBody" : "silverTrimBody";
-  const body = qs(bodyId);
-  body.innerHTML = "";
+  // bank spread
+  updateBankSpread(assetKey);
 
-  const trims = currentMode === "cons" ? cfg.trimsCons : cfg.trimsAggro;
-  trims.forEach(t => {
-    const qty = hold * (t.pct / 100);
-    const profit = (t.price - avg) * qty;
+  // trim ladder
+  renderTrims(assetKey, hold, currentMode === "cons" ? "trimsCons" : "trimsAggro");
+
+  // portfolio summary
+  updatePortfolio();
+}
+
+function updateBankSpread(assetKey) {
+  const buyEl = qs(assetKey + "BankBuy");
+  const sellEl = qs(assetKey + "BankSell");
+  const spreadEl = qs(assetKey + "Spread");
+  const breakevenEl = qs(assetKey + "BreakEven");
+
+  if (!buyEl || !sellEl || !spreadEl || !breakevenEl) return;
+
+  const bankBuy = parseFloat(buyEl.value);
+  const bankSell = parseFloat(sellEl.value);
+
+  if (isNaN(bankBuy) || isNaN(bankSell)) {
+    spreadEl.textContent = "--";
+    breakevenEl.textContent = "--";
+    return;
+  }
+
+  const spread = bankBuy - bankSell; // how much you "lose" crossing the spread
+  const breakEvenSell = bankBuy + spread; // approx sell level to recover spread
+
+  spreadEl.textContent = fmtJod(spread);
+  breakevenEl.textContent = fmtJod(breakEvenSell);
+}
+
+function renderTrims(assetKey, holdingsOz, trimsKey) {
+  const cfg = baseConfig[assetKey];
+  const tbody = qs(assetKey + "TrimBody");
+  if (!cfg || !tbody) return;
+
+  const trims = cfg[trimsKey] || [];
+  tbody.innerHTML = "";
+
+  trims.forEach((t) => {
+    const qty = (holdingsOz * t.pct) / 100;
+    const profit = qty * (t.price - cfg.avg);
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>@ ${t.price.toFixed(1)}</td>
       <td>${t.pct}%</td>
       <td>${qty.toFixed(3)}</td>
-      <td class="${profit >= 0 ? "value-green" : "value-red"}">
-        ${formatJOD(profit)}
-      </td>
+      <td>${fmtJod(profit)} JOD</td>
     `;
-    body.appendChild(tr);
+    tbody.appendChild(tr);
   });
-
-  updatePortfolio();
 }
 
 function updatePortfolio() {
-  const gHold = parseFloat(qs("goldHold").value) || 0;
-  const gAvg = parseFloat(qs("goldAvg").value) || 0;
-  const gPrice = parseFloat(qs("goldPrice").value) || 0;
-  const sHold = parseFloat(qs("silverHold").value) || 0;
-  const sAvg = parseFloat(qs("silverAvg").value) || 0;
-  const sPrice = parseFloat(qs("silverPrice").value) || 0;
+  const assets = ["gold", "silver"];
+  let totalCost = 0;
+  let totalValue = 0;
 
-  const gCost = gHold * gAvg;
-  const gVal = gHold * gPrice;
-  const sCost = sHold * sAvg;
-  const sVal = sHold * sPrice;
+  assets.forEach((key) => {
+    const costNode = qs(key + "Cost");
+    const valueNode = qs(key + "Value");
+    const cost = parseFloat(costNode?.textContent || costNode?.value || "0");
+    const val = parseFloat(valueNode?.value || valueNode?.textContent || "0");
+    if (!isNaN(cost)) totalCost += cost;
+    if (!isNaN(val)) totalValue += val;
+  });
 
-  const totalCost = gCost + sCost;
-  const totalVal = gVal + sVal;
-  const totalPL = totalVal - totalCost;
-  const totalPLPct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
+  const pl = totalValue - totalCost;
+  const plPct = totalCost > 0 ? (pl / totalCost) * 100 : 0;
 
-  qs("pfTotalValue").textContent = formatJOD(totalVal);
-  qs("pfTotalCost").textContent = formatJOD(totalCost);
-
-  const pfNode = qs("pfTotalPL");
-  pfNode.textContent = `${formatJOD(totalPL)} (${formatPct(totalPLPct)})`;
-
-  pfNode.classList.remove("value-green", "value-red");
-  if (totalPL > 0) pfNode.classList.add("value-green");
-  else if (totalPL < 0) pfNode.classList.add("value-red");
+  if (qs("portfolioValue"))
+    qs("portfolioValue").textContent = fmtJod(totalValue) + " JOD";
+  if (qs("portfolioCost"))
+    qs("portfolioCost").textContent = fmtJod(totalCost) + " JOD";
+  if (qs("portfolioPL"))
+    qs("portfolioPL").textContent = fmtJod(pl) + " JOD (" + fmtPct(plPct) + ")";
 }
 
-function applyConfigToInputs() {
-  qs("goldHold").value = baseConfig.gold.holdings;
-  qs("goldAvg").value = baseConfig.gold.avg;
-  qs("goldPrice").value = baseConfig.gold.price;
+// =============================
+// Mode (Conservative / Aggro)
+// =============================
 
-  qs("silverHold").value = baseConfig.silver.holdings;
-  qs("silverAvg").value = baseConfig.silver.avg;
-  qs("silverPrice").value = baseConfig.silver.price;
+function initModeToggle() {
+  const consBtn = qs("modeCons");
+  const aggBtn = qs("modeAggro");
+  if (!consBtn || !aggBtn) return;
+
+  function setMode(mode) {
+    currentMode = mode;
+    consBtn.classList.toggle("active", mode === "cons");
+    aggBtn.classList.toggle("active", mode === "aggro");
+    updateAsset("gold");
+    updateAsset("silver");
+  }
+
+  consBtn.addEventListener("click", () => setMode("cons"));
+  aggBtn.addEventListener("click", () => setMode("aggro"));
+
+  setMode("cons");
 }
 
-function setupThemeToggle() {
-  const btn = document.getElementById("themeToggle");
-  btn.addEventListener("click", () => {
-    document.body.classList.toggle("light");
-    saveState();
+// =============================
+// Asset tab switching
+// =============================
+
+function initAssetTabs() {
+  const goldTab = qs("tabGold");
+  const silverTab = qs("tabSilver");
+  const goldPanel = qs("panelGold");
+  const silverPanel = qs("panelSilver");
+  if (!goldTab || !silverTab || !goldPanel || !silverPanel) return;
+
+  function setAsset(which) {
+    const isGold = which === "gold";
+    goldTab.classList.toggle("active", isGold);
+    silverTab.classList.toggle("active", !isGold);
+    goldPanel.style.display = isGold ? "block" : "none";
+    silverPanel.style.display = isGold ? "none" : "block";
+  }
+
+  goldTab.addEventListener("click", () => setAsset("gold"));
+  silverTab.addEventListener("click", () => setAsset("silver"));
+
+  setAsset("gold");
+}
+
+// =============================
+// Init
+// =============================
+
+function initAssets() {
+  ["gold", "silver"].forEach((key) => {
+    loadPersisted(key);
+    wirePersistence(key);
+    // initialise from base config if empty
+    const cfg = baseConfig[key];
+
+    const holdEl = qs(key + "Hold");
+    const avgEl = qs(key + "Avg");
+    const priceEl = qs(key + "Price");
+
+    if (holdEl && !holdEl.value) holdEl.value = cfg.holdings;
+    if (avgEl && !avgEl.value) avgEl.value = cfg.avg;
+    if (priceEl && !priceEl.value) priceEl.value = cfg.price;
+
+    updateAsset(key);
   });
 }
 
-function setupTabs() {
-  const tabs = document.querySelectorAll(".tab");
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      const asset = tab.dataset.asset;
-      document.getElementById("goldPanel").classList.toggle("hidden", asset !== "gold");
-      document.getElementById("silverPanel").classList.toggle("hidden", asset !== "silver");
-    });
-  });
-}
-
-function setupModeToggle() {
-  const btns = document.querySelectorAll("#modeToggle .mode-btn");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      currentMode = btn.dataset.mode;
-
-      qs("goldModeLabel").textContent =
-        "Mode: " + (currentMode === "cons" ? "Cons." : "Aggro");
-      qs("silverModeLabel").textContent =
-        "Mode: " + (currentMode === "cons" ? "Cons." : "Aggro");
-
-      updateAsset("gold");
-      updateAsset("silver");
-      saveState();
-    });
-  });
-}
-
-function setupInputs() {
-  [
-    "goldHold",
-    "goldAvg",
-    "goldPrice",
-    "goldPrev",
-    "goldBankBuy",
-    "goldBankSell",
-    "silverHold",
-    "silverAvg",
-    "silverPrice",
-    "silverPrev",
-    "silverBankBuy",
-    "silverBankSell"
-  ].forEach(id => {
-    const el = qs(id);
-    if (!el) return;
-    el.addEventListener("input", () => {
-      updateAsset("gold");
-      updateAsset("silver");
-      saveState();
-    });
-  });
-}
-
-function init() {
-  loadState();
-  setupThemeToggle();
-  setupTabs();
-  setupModeToggle();
-  applyConfigToInputs();
-  setupInputs();
-  updateAsset("gold");
-  updateAsset("silver");
-}
-
-document.addEventListener("DOMContentLoaded", init);
+window.addEventListener("load", () => {
+  initTheme();
+  initModeToggle();
+  initAssetTabs();
+  initAssets();
+});
